@@ -24,4 +24,4 @@ spec:
       - name: {{ .Values.name }}
         image: {{ .Values.img }}
         imagePullPolicy: {{ .Values.pullPolicy }}
-        args: "--endpoint consul.lbtran.com --port 80"
+        args: ["--endpoint consul.lbtran.com", "--port 80"]
