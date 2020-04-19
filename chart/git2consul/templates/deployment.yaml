@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: {{ .Values.name }}-deployment
+  namespace: {{ .Values.namespace }}
+  labels:
+    role: git2consul
+
+spec:
+  selector:
+    matchLabels:
+      pod: git2consul
+
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      name: {{ .Values.name }}-pod
+      labels:
+        pod: frontend
+
+    spec:
+      containers:
+      - name: {{ .Values.name }}
+        image: {{ .Values.img }}
+        imagePullPolicy: {{ .Values.pullPolicy }}

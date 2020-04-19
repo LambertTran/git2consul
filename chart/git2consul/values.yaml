@@ -1,0 +1,4 @@
+name: git2consul
+namespace: dev
+img: alirom93/lb-gitops:git2consul-1.0.0
+pullPolicy: Always
