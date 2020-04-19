@@ -17,7 +17,7 @@ spec:
     metadata:
       name: {{ .Values.name }}-pod
       labels:
-        pod: frontend
+        pod: git2consul
 
     spec:
       containers:
