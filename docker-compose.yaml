@@ -3,4 +3,4 @@ services:
     git2consul:
         build: .
         image: ${DOCKER_REGISTRY}:${VERSION}
-        command: "--endpoint consul.lbtran.com --port 80"
+        #command: "--endpoint consul.lbtran.com --port 80"
