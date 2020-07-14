@@ -1,12 +1,68 @@
 {
-  "version": "1.0",
-  "repos" : [{
-    "name" : "config-workspace",
-    "url" : "https://github.com/LambertTran/config-workspace.git",
-    "branches" : ["master"],
-    "hooks": [{
-      "type" : "polling",
-      "interval" : "1"
-    }]
-  }]
+    "local_store": "/tmp/git2consul",
+    "repos" : [
+        {
+            "name" : "base",
+            "url" : "ssh://github.com/LambertTran/config-workspace.git",
+            "branches" : ["master"],
+            "source_root": "/base/",
+            "mount_point": "base/",
+            "skip_repo_name": true,
+            "skip_branch_name": true,
+            "expand_keys": true,
+            "hooks": [{
+                "type": "polling",
+                "interval": 30
+            }],
+            "credentials": {
+                "private_key": {
+                    "pk_key": "/root/.ssh/lb_dev",
+                    "pk_username": "git"
+                }
+            }
+        },
+        {
+            "name" : "prod-base",
+            "url" : "ssh://github.com/LambertTran/config-workspace.git",
+            "branches" : ["master"],
+            "source_root": "/base/",
+            "mount_point": "prod/",
+            "skip_repo_name": true,
+            "skip_branch_name": true,
+            "expand_keys": true,
+            "hooks": [{
+                "type": "polling",
+                "interval": 30
+            }],
+            "credentials": {
+                "private_key": {
+                    "pk_key": "/root/.ssh/lb_dev",
+                    "pk_username": "git"
+                }
+            }
+        },
+        {
+            "name" : "prod",
+            "url" : "ssh://github.com/LambertTran/config-workspace.git",
+            "branches" : ["master"],
+            "source_root": "/prod/",
+            "mount_point": "prod/",
+            "skip_repo_name": true,
+            "skip_branch_name": true,
+            "expand_keys": true,
+            "hooks": [{
+                "type": "polling",
+                "interval": 30
+            }],
+            "credentials": {
+                "private_key": {
+                    "pk_key": "/root/.ssh/lb_dev",
+                    "pk_username": "git"
+                }
+            }
+        }
+    ],
+    "consul": {
+        "address": "consul.lbtran.com:80"
+    }
 }
