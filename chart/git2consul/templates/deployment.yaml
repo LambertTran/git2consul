@@ -27,7 +27,7 @@ spec:
         args: ["--endpoint", "consul.lbtran.com", "--port", "80"]
 
       # consul agent - service discovery
-      - name: {{ .Values.containerName }}-consul-agent
+      - name: {{ .Values.name }}-consul-agent
         image: consul
         imagePullPolicy: {{ .Values.pullPolicy }}
         env:
