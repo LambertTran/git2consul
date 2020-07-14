@@ -29,7 +29,7 @@ spec:
       # consul agent - service discovery
       - name: {{ .Values.containerName }}-consul-agent
         image: consul
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        imagePullPolicy: {{ .Values.pullPolicy }}
         env:
         - name: "GOSSIP_KEY"
           valueFrom:
