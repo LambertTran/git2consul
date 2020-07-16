@@ -24,7 +24,7 @@ spec:
       - name: {{ .Values.name }}
         image: {{ .Values.img }}
         imagePullPolicy: {{ .Values.pullPolicy }}
-        args: ["-config", "$(GIT2CONSUL_CONFIG)"
+        args: ["-config", "$(GIT2CONSUL_CONFIG)"]
         env:
         - name: GIT2CONSUL_CONFIG
           value: |
