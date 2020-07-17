@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 
@@ -21,10 +22,58 @@ spec:
 
     spec:
       containers:
+      # git2consul
       - name: {{ .Values.name }}
         image: {{ .Values.img }}
         imagePullPolicy: {{ .Values.pullPolicy }}
-        args: ["-config", "$(GIT2CONSUL_CONFIG)"]
+        env:
+        - name: SSH_KNOWN_HOSTS
+          value: /workdir/known_hosts
+        args: ["-config", "/workdir/config.json"]
+        volumeMounts:
+        - name: workdir
+          mountPath: "/workdir"
+
+      # consul agent - service discovery
+      - name: consul-agent
+        image: consul
+        imagePullPolicy: {{ .Values.pullPolicy }}
+        # need GOSSIP_KEY to join consul cluster
+        env:
+        - name: "GOSSIP_KEY"
+          valueFrom:
+            secretKeyRef:
+              name: consul-join-key
+              key: consul_key
+        - name: CONSUL_LOCAL_CONFIG
+          value: |
+            {
+                "service": {
+                    "name": "git2consul",
+                    "tags": [
+                        "config-cluster"
+                    ],
+                    "port": 22
+                }
+            }
+        args: ["agent", "-join", "consul", "-encrypt", "$(GOSSIP_KEY)"]
+
+      initContainers:
+      - name: scan_github
+        image: busybox
+        command: ["/bin/sh"]
+        args: ["-c","ssh-keyscan github.com > /workdir/known_hosts"]
+        volumeMounts:
+        - name: workdir
+          mountPath: "/workdir"
+
+      - name: get_config
+        image: busybox
+        command: ["/bin/sh"]
+        args: ["-c","echo $GIT2CONSUL_CONFIG > /workdir/config.json"]
+        volumeMounts:
+        - name: workdir
+          mountPath: "/workdir"
         env:
         - name: GIT2CONSUL_CONFIG
           value: |
@@ -51,72 +100,13 @@ spec:
                             }
                         }
                     },
-                    {
-                        "name" : "prod-base",
-                        "url" : "ssh://github.com/LambertTran/config-workspace.git",
-                        "branches" : ["master"],
-                        "source_root": "/base/",
-                        "mount_point": "prod/",
-                        "skip_repo_name": true,
-                        "skip_branch_name": true,
-                        "expand_keys": true,
-                        "hooks": [{
-                            "type": "polling",
-                            "interval": 30
-                        }],
-                        "credentials": {
-                            "private_key": {
-                                "pk_key": "/root/.ssh/lb_dev",
-                                "pk_username": "git"
-                            }
-                        }
-                    },
-                    {
-                        "name" : "prod",
-                        "url" : "ssh://github.com/LambertTran/config-workspace.git",
-                        "branches" : ["master"],
-                        "source_root": "/prod/",
-                        "mount_point": "prod/",
-                        "skip_repo_name": true,
-                        "skip_branch_name": true,
-                        "expand_keys": true,
-                        "hooks": [{
-                            "type": "polling",
-                            "interval": 30
-                        }],
-                        "credentials": {
-                            "private_key": {
-                                "pk_key": "/root/.ssh/lb_dev",
-                                "pk_username": "git"
-                            }
-                        }
-                    }
                 ],
                 "consul": {
-                    "address": "consul:8500"
+                    "address": "consul.lbtran.com:80"
                 }
             }
 
-
-      # consul agent - service discovery
-      - name: {{ .Values.name }}-consul-agent
-        image: consul
-        imagePullPolicy: {{ .Values.pullPolicy }}
-        env:
-        - name: "GOSSIP_KEY"
-          valueFrom:
-            secretKeyRef:
-              name: consul-join-key
-              key: consul_key
-        - name: CONSUL_LOCAL_CONFIG
-          value: |
-            {
-                "service": {
-                    "name": "git2consul",
-                    "tags": [
-                        "config-cluster"
-                    ],
-                    "port": 22
-                }
-            }
-        args: ["agent", "-join", "consul", "-encrypt", "$(GOSSIP_KEY)"]
+      # Share directory between initContainers and runtimeContainers
+      volumes:
+      - name: workdir
+        emptyDir: {}
