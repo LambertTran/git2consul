@@ -59,7 +59,7 @@ spec:
         args: ["agent", "-join", "consul", "-encrypt", "$(GOSSIP_KEY)"]
 
       initContainers:
-      - name: scan_github
+      - name: scan-github
         image: busybox
         command: ["/bin/sh"]
         args: ["-c","ssh-keyscan github.com > /workdir/known_hosts"]
@@ -67,7 +67,7 @@ spec:
         - name: workdir
           mountPath: "/workdir"
 
-      - name: get_config
+      - name: get-config
         image: busybox
         command: ["/bin/sh"]
         args: ["-c","echo $GIT2CONSUL_CONFIG > /workdir/config.json"]
