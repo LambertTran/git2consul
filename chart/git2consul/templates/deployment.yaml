@@ -39,6 +39,9 @@ spec:
         image: consul
         imagePullPolicy: {{ .Values.pullPolicy }}
         # need GOSSIP_KEY to join consul cluster
+        volumeMounts:
+        - name: workdir
+          mountPath: "/workdir"
         env:
         - name: "GOSSIP_KEY"
           valueFrom:
@@ -60,12 +63,18 @@ spec:
 
       initContainers:
       - name: scan-github
-        image: busybox
+        image: centos
         command: ["/bin/sh"]
-        args: ["-c","ssh-keyscan github.com > /workdir/known_hosts"]
+        args: ["-c","yum install openssh-clients -y; ssh-keyscan github.com > /workdir/known_hosts; echo \"$SSH_KEY\" > /workdir/lb_dev"]
         volumeMounts:
         - name: workdir
           mountPath: "/workdir"
+        env:
+        - name: "SSH_KEY"
+          valueFrom:
+            secretKeyRef:
+              name: ssh-key
+              key: lb_dev
 
       - name: get-config
         image: busybox
@@ -95,11 +104,11 @@ spec:
                         }],
                         "credentials": {
                             "private_key": {
-                                "pk_key": "/root/.ssh/lb_dev",
+                                "pk_key": "/workdir/lb_dev",
                                 "pk_username": "git"
                             }
                         }
-                    },
+                    }
                 ],
                 "consul": {
                     "address": "consul.lbtran.com:80"
