@@ -21,8 +21,44 @@ spec:
         pod: git2consul
 
     spec:
+      # Preparing environment before service containers start
+      # use shared workspace: /workdir
+      initContainers:
+        # scan github hostname for git2consul
+        # store known_hosts in /workdir
+        # /workdir will be mounted at runtime
+      - name: scan-github
+        image: centos
+        command: ["/bin/sh"]
+        args: ["-c","yum install openssh-clients -y; ssh-keyscan github.com > /workdir/known_hosts; echo \"$SSH_KEY\" > /workdir/lb_dev"]
+        volumeMounts:
+        - name: workdir
+          mountPath: "/workdir"
+        env:
+        - name: "SSH_KEY"
+          valueFrom:
+            secretKeyRef:
+              name: ssh-key
+              key: lb_dev
+
+        # git2consul take config.json as input
+        # we need to read it from configMap
+      - name: get-config
+        image: busybox
+        command: ["/bin/sh"]
+        args: ["-c","echo $GIT2CONSUL_CONFIG > /workdir/config.json"]
+        volumeMounts:
+        - name: workdir
+          mountPath: "/workdir"
+        env:
+        - name: GIT2CONSUL_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Values.configMapName }}
+              key: consulagent.conf
+
       containers:
-      # git2consul
+      # start git2consul using config.json fetched from initContainers
       - name: {{ .Values.name }}
         image: {{ .Values.img }}
         imagePullPolicy: {{ .Values.pullPolicy }}
@@ -39,9 +75,6 @@ spec:
         image: consul
         imagePullPolicy: {{ .Values.pullPolicy }}
         # need GOSSIP_KEY to join consul cluster
-        volumeMounts:
-        - name: workdir
-          mountPath: "/workdir"
         env:
         - name: "GOSSIP_KEY"
           valueFrom:
@@ -49,71 +82,12 @@ spec:
               name: consul-join-key
               key: consul_key
         - name: CONSUL_LOCAL_CONFIG
-          value: |
-            {
-                "service": {
-                    "name": "git2consul",
-                    "tags": [
-                        "config-cluster"
-                    ],
-                    "port": 22
-                }
-            }
-        args: ["agent", "-join", "consul", "-encrypt", "$(GOSSIP_KEY)"]
-
-      initContainers:
-      - name: scan-github
-        image: centos
-        command: ["/bin/sh"]
-        args: ["-c","yum install openssh-clients -y; ssh-keyscan github.com > /workdir/known_hosts; echo \"$SSH_KEY\" > /workdir/lb_dev"]
-        volumeMounts:
-        - name: workdir
-          mountPath: "/workdir"
-        env:
-        - name: "SSH_KEY"
           valueFrom:
-            secretKeyRef:
-              name: ssh-key
-              key: lb_dev
+            configMapKeyRef:
+              name: {{ .Values.configMapName }}
+              key: git2consul.conf
 
-      - name: get-config
-        image: busybox
-        command: ["/bin/sh"]
-        args: ["-c","echo $GIT2CONSUL_CONFIG > /workdir/config.json"]
-        volumeMounts:
-        - name: workdir
-          mountPath: "/workdir"
-        env:
-        - name: GIT2CONSUL_CONFIG
-          value: |
-            {
-                "local_store": "/tmp/git2consul",
-                "repos" : [
-                    {
-                        "name" : "base",
-                        "url" : "ssh://github.com/LambertTran/config-workspace.git",
-                        "branches" : ["master"],
-                        "source_root": "/base/",
-                        "mount_point": "base/",
-                        "skip_repo_name": true,
-                        "skip_branch_name": true,
-                        "expand_keys": true,
-                        "hooks": [{
-                            "type": "polling",
-                            "interval": 30
-                        }],
-                        "credentials": {
-                            "private_key": {
-                                "pk_key": "/workdir/lb_dev",
-                                "pk_username": "git"
-                            }
-                        }
-                    }
-                ],
-                "consul": {
-                    "address": "consul.lbtran.com:80"
-                }
-            }
+        args: ["agent", "-join", "consul", "-encrypt", "$(GOSSIP_KEY)"]
 
       # Share directory between initContainers and runtimeContainers
       volumes:

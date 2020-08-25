@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metada:
+  name: {{ .Values.configMapName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    role: {{ .Values.name }}-cluster
+data:
+  consulagent.conf: |
+    {
+        "service": {
+            "name": "git2consul",
+            "tags": [
+                "config-cluster"
+            ],
+            "port": 22
+        }
+    }
+  git2consul.conf: |
+    {
+        "local_store": "/tmp/git2consul",
+        "repos" : [
+            {
+                "name" : "base",
+                "url" : "ssh://github.com/LambertTran/config-workspace.git",
+                "branches" : ["master"],
+                "source_root": "/base/",
+                "mount_point": "base/",
+                "skip_repo_name": true,
+                "skip_branch_name": true,
+                "expand_keys": true,
+                "hooks": [{
+                    "type": "polling",
+                    "interval": 30
+                }],
+                "credentials": {
+                    "private_key": {
+                        "pk_key": "/workdir/lb_dev",
+                        "pk_username": "git"
+                    }
+                }
+            }
+        ],
+        "consul": {
+            "address": "consul.lbtran.com:80"
+        }
+    }

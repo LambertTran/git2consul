@@ -1,4 +1,5 @@
 name: git2consul
+configMapName: git2consul-config
 namespace: dev
 img: alirom93/lb-gitops:git2consul-1.0.1
 pullPolicy: Always
