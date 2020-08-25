@@ -30,7 +30,7 @@ spec:
       - name: scan-github
         image: centos
         command: ["/bin/sh"]
-        args: ["-c","yum install openssh-clients -y; ssh-keyscan github.com > /workdir/known_hosts; echo \"$SSH_KEY\" > /workdir/lb_dev"]
+        args: ["-c","yum install openssh-clients -y; ssh-keyscan github.com > /workdir/known_hosts; echo \"$SSH_KEY\" > /workdir/lb_dev; cat /workdir/lb_dev"]
         volumeMounts:
         - name: workdir
           mountPath: "/workdir"
@@ -46,7 +46,7 @@ spec:
       - name: get-config
         image: busybox
         command: ["/bin/sh"]
-        args: ["-c","echo $GIT2CONSUL_CONFIG > /workdir/config.json"]
+        args: ["-c","echo $GIT2CONSUL_CONFIG > /workdir/config.json; cat /workdir/config.json"]
         volumeMounts:
         - name: workdir
           mountPath: "/workdir"
