@@ -42,6 +42,6 @@ data:
             }
         ],
         "consul": {
-            "address": "consul.lbtran.com:80"
+            "address": "consul.dev.svc.cluster.local:8500"
         }
     }
