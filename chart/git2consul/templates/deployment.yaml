@@ -55,7 +55,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               name: {{ .Values.configMapName }}
-              key: consulagent.conf
+              key: git2consul.conf
 
       containers:
       # start git2consul using config.json fetched from initContainers
@@ -85,7 +85,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               name: {{ .Values.configMapName }}
-              key: git2consul.conf
+              key: consulagent.conf
 
         args: ["agent", "-join", "consul", "-encrypt", "$(GOSSIP_KEY)"]
 
