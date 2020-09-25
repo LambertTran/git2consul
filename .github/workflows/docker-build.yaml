@@ -1,6 +1,13 @@
 name: Build new Docker img
 # This workflow is triggered on pushes to the repository.
-on: [push]
+#on: [push]
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Person to greet'
+        required: true
+        default: 'Mona the Octocat'
 
 jobs:
   build:
@@ -9,6 +16,7 @@ jobs:
     # This job runs on Linux
     runs-on: ubuntu-latest
     steps:
+      # Use a github repo, called - 'actions/checkout'
     - uses: actions/checkout@v1
     - name: Build Img
       run: |

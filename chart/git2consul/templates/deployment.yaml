@@ -76,18 +76,19 @@ spec:
         imagePullPolicy: {{ .Values.pullPolicy }}
         # need GOSSIP_KEY to join consul cluster
         env:
-        - name: "GOSSIP_KEY"
-          valueFrom:
-            secretKeyRef:
-              name: consul-join-key
-              key: consul_key
+        #- name: "GOSSIP_KEY"
+        #  valueFrom:
+        #    secretKeyRef:
+        #      name: consul-join-key
+        #      key: consul_key
         - name: CONSUL_LOCAL_CONFIG
           valueFrom:
             configMapKeyRef:
               name: {{ .Values.configMapName }}
               key: consulagent.conf
 
-        args: ["agent", "-join", "consul", "-encrypt", "$(GOSSIP_KEY)"]
+        #args: ["agent", "-join", "consul", "-encrypt", "$(GOSSIP_KEY)"]
+        args: ["agent", "-join", "consul-consul-server", "-enable-local-script-checks"]
 
       # Share directory between initContainers and runtimeContainers
       volumes:

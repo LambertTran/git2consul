@@ -21,11 +21,11 @@ data:
         "local_store": "/tmp/git2consul",
         "repos" : [
             {
-                "name" : "base",
+                "name" : "dev",
                 "url" : "ssh://github.com/LambertTran/config-workspace.git",
                 "branches" : ["master"],
-                "source_root": "/base/",
-                "mount_point": "base/",
+                "source_root": "/dev/",
+                "mount_point": "dev/",
                 "skip_repo_name": true,
                 "skip_branch_name": true,
                 "expand_keys": true,
@@ -42,6 +42,6 @@ data:
             }
         ],
         "consul": {
-            "address": "consul.dev.svc.cluster.local:8500"
+            "address": "consul-consul-server:8500"
         }
     }
